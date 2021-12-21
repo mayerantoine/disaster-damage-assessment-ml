@@ -1,4 +1,4 @@
-# Disaster damage assesment app
+# Disaster damage assessment app
 
 Damage assessments  during and after natural disasters are core activities for humanitarian organizations. They are used to increase situational awareness during the disaster or to provide actionable information for rescue teams.Post-disasters, they are essential  to evaluate the financial impact and the recovery cost.
 
