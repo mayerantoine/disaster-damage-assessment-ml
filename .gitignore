@@ -34,6 +34,7 @@ var/
 wandb-debug.log
 wandb/*
 !wandb/settings
+training/wandb/*
 
 # Misc
 .DS_Store

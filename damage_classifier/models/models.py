@@ -7,6 +7,7 @@ from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 IMG_SIZE = 224
 num_classes = 3
 
+# TODO Create classes for the models
 
 def get_vgg16_model(lr=0.001):
     tf.keras.backend.clear_session()

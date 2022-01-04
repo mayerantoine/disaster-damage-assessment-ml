@@ -5,9 +5,15 @@ from tensorflow.keras import optimizers, callbacks,models,layers
 import matplotlib.pyplot as plt
 from damage_classifier.models.models import get_mobilenet_model,get_efficient_model,get_vgg16_model,get_vgg16_fc2_model
 from damage_classifier.preprocess import create_dataset
-
+import wandb
+from wandb.keras import WandbCallback
 damage_path = '../data/damage_csv'
 
+# TODO experimentation with weights and biases
+# TODO add inference on test dataset
+# TODO add compute metrics on validation and test dataset
+# TODO log confusion_matrix and precision-recall curve with wandb
+# TODO add command line interface
 
 def subplot_learning_curve(model_name,history):
     #plt.clf()
@@ -21,6 +27,8 @@ def subplot_learning_curve(model_name,history):
         plt.legend((metric, 'val_' + metric))
         plt.title(model_name + ": Learning curve " + metric + " vs " + 'val_' + metric)
     plt.show()
+
+    return plt
 
 
 def finetune_model(lr ,model_name ,train_batches ,valid_batches ,initial_epoch,
@@ -48,6 +56,9 @@ def finetune_model(lr ,model_name ,train_batches ,valid_batches ,initial_epoch,
         model.compile(optimizer=optimizers.Adam(learning_rate=lr),
                       loss='sparse_categorical_crossentropy',
                       metrics=['acc'])
+        ds = valid_batches.take(1)
+        ds_filter = ds.map(lambda x, y: (x[:5], y[:5]))
+        class_names = ['none', 'mild', 'severe']
 
         print()
         print("Training..................")
@@ -57,7 +68,9 @@ def finetune_model(lr ,model_name ,train_batches ,valid_batches ,initial_epoch,
                             steps_per_epoch=steps_per_epoch,
                             validation_data=valid_batches,
                             validation_steps=validation_steps,
-                            callbacks=[early_stop])
+                            callbacks=[early_stop,WandbCallback(data_type='images',
+                                                                training_data=ds_filter,
+                                                                    labels=class_names)])
 
     return history, model
 
@@ -98,8 +111,13 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
     elif model_name == 'mobilenet':
         model = get_mobilenet_model(lr=lr)
 
+    # TODO rename model
     check = callbacks.ModelCheckpoint(f'../outputs/model/{model_name}.h5', save_best_only=True)
     early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
+
+    ds = valid_batches.take(1)
+    ds_filter = ds.map(lambda x, y: (x[:5], y[:5]))
+    class_names = ['none', 'mild', 'severe']
 
     print()
     print("Training..................")
@@ -108,11 +126,15 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
                         steps_per_epoch=steps_per_epoch,
                         validation_data=valid_batches,
                         validation_steps=validation_steps,
-                        callbacks=[check, early_stop])
+                        callbacks=[check, early_stop,WandbCallback(data_type='images',
+                                                                training_data=ds_filter,
+                                                                    labels=class_names)])
 
     print()
-    subplot_learning_curve(model_name, history)
+    plt_learning_curve = subplot_learning_curve(model_name, history)
+    # wandb.log({"learning_curve": wandb.Image(plt_learning_curve)})
 
+    # TODO Load model correctly
     print()
     # print('loading best weights model')
     # model = models.load_model(f'./model/{model_name}.h5')
@@ -126,6 +148,7 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
     print()
     print(f"Training accuracy: {results_train['acc']}")
     print(f"Validation accuracy: {results_test['acc']}")
+    wandb.log({"train_acc": results_train['acc'],"valid_acc": results_test['acc']})
 
     if do_finetune:
 
@@ -147,5 +170,6 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
         print()
         print(f"Training finetune accuracy: {results_train['acc']}")
         print(f"Validation finetune accuracy: {results_test['acc']}")
+        wandb.log({"train_ftune_acc": results_train['acc'], "valid_ftune_acc": results_test['acc']})
 
     return results_train['acc'], results_test['acc'], model
