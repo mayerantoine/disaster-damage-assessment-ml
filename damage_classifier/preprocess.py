@@ -40,6 +40,7 @@ def create_dataset(damage_path, event, is_augment=False, batch_size=32, buffer_s
                                             x_col='path',
                                             y_col='label',
                                             class_mode='raw',
+                                            shuffle=False,
                                             batch_size=batch_size,
                                             target_size=(IMG_SIZE, IMG_SIZE))
 
@@ -51,6 +52,7 @@ def create_dataset(damage_path, event, is_augment=False, batch_size=32, buffer_s
                                            x_col='path',
                                            y_col='label',
                                            class_mode='raw',
+                                           shuffle=False,
                                            batch_size=batch_size,
                                            target_size=(IMG_SIZE, IMG_SIZE))
 
@@ -78,11 +80,11 @@ def create_dataset(damage_path, event, is_augment=False, batch_size=32, buffer_s
         train_dataset = train_dataset.map(lambda x, y: (data_augmentation_layer(x, training=True), y),
                                           num_parallel_calls=tf.data.AUTOTUNE)
 
-    print(f"steps_per_epochs: {len(train_df) // batch_size}")
-    print(f"validations_steps: {len(valid_df) // batch_size}")
+    steps_per_epoch = round(len(train_df) / batch_size)
+    validation_steps = round(len(valid_df) / batch_size)
 
-    steps_per_epoch = len(train_df) // batch_size
-    validation_steps = len(valid_df) // batch_size
+    print(f"steps_per_epochs: {steps_per_epoch}")
+    print(f"validations_steps: {validation_steps}")
 
     train_dataset = train_dataset.prefetch(buffer_size=10)
     valid_dataset = valid_dataset.prefetch(buffer_size=10)
