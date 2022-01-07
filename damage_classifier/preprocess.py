@@ -5,7 +5,8 @@ from tensorflow.keras import optimizers, callbacks,models,layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 IMG_SIZE = 224
-images_path = '../data/ASONAM17_Damage_Image_Dataset'
+images_folder = 'ASONAM17_Damage_Image_Dataset'
+damage_folder = 'damage_csv'
 
 data_augmentation_layer = tf.keras.Sequential([
                                   layers.RandomFlip("horizontal_and_vertical"),
@@ -15,9 +16,16 @@ data_augmentation_layer = tf.keras.Sequential([
 ])
 
 
-def create_dataset(damage_path, event, is_augment=False, batch_size=32, buffer_size=100):
+def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100):
+
+    images_path = os.path.join(cwd,'data',images_folder)
+    damage_path = os.path.join(cwd,'data',damage_folder)
     label_path = os.path.join(damage_path, event)
-    print(label_path)
+
+    print("images path:", images_path)
+    print("damage path:", damage_path)
+    print("label path:",label_path)
+
 
     img_gen = ImageDataGenerator(rescale=1 / 255.0, )
 

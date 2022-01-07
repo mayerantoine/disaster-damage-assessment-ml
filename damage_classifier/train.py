@@ -36,12 +36,12 @@ def compute_metrics(pred):
     labels = pred.y_true
     preds = pred.y_pred
     acc = accuracy_score(labels, preds)
-    bal_acc = balanced_accuracy_score(labels, preds)
-    precision = precision_score(labels,preds,average='weighted')
-    recall = recall_score(labels,preds,average='weighted')
-    f1 = f1_score(labels,preds,average='weighted')
+    # bal_acc = balanced_accuracy_score(labels, preds)
+    precision = precision_score(labels,preds,average='macro',zero_division=0)
+    recall = recall_score(labels,preds,average='macro',zero_division=0)
+    f1 = f1_score(labels,preds,average='macro',zero_division=0)
     return {
-        'balanced_accuracy': bal_acc,
+        'accuracy': acc,
         'f1': f1,
         'precision': precision,
         'recall': recall
@@ -108,7 +108,7 @@ def finetune_model(exp_name,lr ,model_name ,train_batches ,valid_batches ,initia
     return history, model
 
 
-def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32, do_finetune=False,
+def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.001, batch_size=32, do_finetune=False,
                    use_clr=False, buffer_size=10, n_epochs=20, init_lr=1e-3, max_lr=1e-2):
     print(f"******************{exp_name}*********************************")
     print(f"model_name ={model_name}")
@@ -121,7 +121,7 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
     gc.collect()
 
     print(f"Creating dataset.....")
-    train_batches, valid_batches, test_batches, steps_per_epoch, validation_steps = create_dataset(damage_path,
+    train_batches, valid_batches, test_batches, steps_per_epoch, validation_steps = create_dataset(cwd,
                                                                                                    event,
                                                                                                    is_augment=is_augment,
                                                                                                    batch_size=batch_size)
@@ -145,7 +145,7 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
         model = get_mobilenet_model(lr=lr)
 
     # TODO rename model
-    check = callbacks.ModelCheckpoint(f'../outputs/model/{exp_name}.h5', save_best_only=True)
+    check = callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
     early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
 
     ds = valid_batches.take(1)
@@ -197,11 +197,11 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
         wandb.log(metrics)
 
         # Class report
-        print()
-        print(f"Class report metrics........")
-        classes_report = classification_report(predictions.y_true, predictions.y_pred,
-                                               target_names=class_names, output_dict=True)
-        wandb.log(classes_report)
+        # print()
+        # print(f"Class report metrics........")
+        # classes_report = classification_report(predictions.y_true, predictions.y_pred,
+        #                                        target_names=class_names, output_dict=True,zero_division=0)
+        #wandb.log(classes_report)
 
     if do_finetune:
 
@@ -215,7 +215,7 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
                                         steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
                                         use_clr=use_clr, init_lr=init_lr * 1e-2, max_lr=max_lr * 1e-2, model=model)
         print()
-        subplot_learning_curve(model_name + "_fintuned", history)
+        # subplot_learning_curve(model_name + "_fintuned", history)
 
         results_train = model.evaluate(train_batches, steps=steps_per_epoch, return_dict=True)
         results_test = model.evaluate(valid_batches, steps=validation_steps, return_dict=True)
@@ -228,15 +228,18 @@ def train(exp_name, event, model_name, is_augment=False, lr=0.001, batch_size=32
         # Predictions
         print()
         print(f"Run prediction and Log metrics.........")
+        images_ds = test_batches.map(lambda x, y: x)
+        label_ds = test_batches.map(lambda x, y: y)
+
         predictions = batch_predict(images_ds, label_ds, model, validation_steps)
         metrics = compute_metrics(predictions)
         wandb.log(metrics)
 
         # Class report
-        print()
-        print(f"Class report metrics........")
-        classes_report = classification_report(predictions.y_true, predictions.y_pred,
-                                               target_names=class_names, output_dict=True)
-        wandb.log(classes_report)
+        # print()
+        # print(f"Class report metrics........")
+        # classes_report = classification_report(predictions.y_true, predictions.y_pred,
+        #                                        target_names=class_names, output_dict=True,zero_division=0)
+        # wandb.log(classes_report)
 
     return results_train['acc'], results_test['acc'], model
