@@ -80,7 +80,7 @@ def run_experiment(hyper_params,lr,batch,epochs):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--event",type=str,default='ruby')
+    parser.add_argument("--event",type=str,default='cross_event_ecuador')
     parser.add_argument("--model", type=str, default='mobilenet')
     parser.add_argument("--lr", type=int, default=1e-3)
     parser.add_argument("--epochs", type=int, default=1)

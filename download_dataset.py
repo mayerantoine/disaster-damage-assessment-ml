@@ -1,7 +1,7 @@
 import os
 from damage_classifier.data.download import download_images, extract_images
 from damage_classifier.data.download import save_all_files
-from damage_classifier.train import train
+
 
 images_folder = 'ASONAM17_Damage_Image_Dataset'
 damage_folder = 'damage_csv'

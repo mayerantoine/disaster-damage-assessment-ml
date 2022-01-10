@@ -37,9 +37,9 @@ def compute_metrics(pred):
     preds = pred.y_pred
     acc = accuracy_score(labels, preds)
     # bal_acc = balanced_accuracy_score(labels, preds)
-    precision = precision_score(labels,preds,average='macro',zero_division=0)
-    recall = recall_score(labels,preds,average='macro',zero_division=0)
-    f1 = f1_score(labels,preds,average='macro',zero_division=0)
+    precision = precision_score(labels,preds,average='weighted',zero_division=0)
+    recall = recall_score(labels,preds,average='weighted',zero_division=0)
+    f1 = f1_score(labels,preds,average='weighted',zero_division=0)
     return {
         'accuracy': acc,
         'f1': f1,
