@@ -12,7 +12,7 @@ from damage_classifier.train import train
 # TODO set wandb run name automotically
 
 
-def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epochs=10):
+def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epochs=10,frac=0.2):
     return dict(
         exp_name=exp_name,
         event=event,
@@ -25,7 +25,8 @@ def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epo
         buffer_size=10,
         n_epochs=epochs,
         init_lr=1e-3,
-        max_lr=1e-2
+        max_lr=1e-2,
+        frac =frac
     )
 
 
@@ -34,7 +35,7 @@ def get_timestamp():
     return time.strftime('%Y-%m-%d %H:%M:%S', t)
 
 
-def run_experiment(hyper_params,lr,batch,epochs):
+def run_experiment(hyper_params,lr,batch,epochs,frac):
     cwd = os.getcwd()
     print("working dir",cwd)
     output_path = os.path.join(cwd,"outputs/model")
@@ -58,7 +59,7 @@ def run_experiment(hyper_params,lr,batch,epochs):
                             exp_name = exp_name + '_CLR'
 
                     exp_name = exp_name + "_" + str(timestamp)
-                    params = _get_params(exp_name, model, tune, policy,event,lr,batch,epochs)
+                    params = _get_params(exp_name, model, tune, policy,event,lr,batch,epochs,frac)
                     print(exp_name)
 
                     run = wandb.init(
@@ -74,7 +75,7 @@ def run_experiment(hyper_params,lr,batch,epochs):
 
                     rs = train(cwd,config.exp_name, config.event, config.model_name,output_path, config.is_augment,
                                config.lr,config.batch_size, config.do_finetune, config.use_clr, config.buffer_size,
-                               config.n_epochs,  config.init_lr, config.max_lr)
+                               config.n_epochs,  config.init_lr, config.max_lr,config.frac)
                     run.finish()
 
 
@@ -85,6 +86,7 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=int, default=1e-3)
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch",type=int, default=32)
+    parser.add_argument("--frac",type=float, default=0.2)
 
     args = parser.parse_args()
 
@@ -95,7 +97,7 @@ if __name__ == "__main__":
         "events": ['ruby'],
         "models": ['mobilenet'],
         "tuning": [False],
-        "clr": [True]
+        "clr": [False]
     }
     events = []
     models = []
@@ -113,7 +115,7 @@ if __name__ == "__main__":
         hyper_params['models'] = models
 
     print(hyper_params)
-    run_experiment(hyper_params, args.lr, args.batch, args.epochs)
+    run_experiment(hyper_params, args.lr, args.batch, args.epochs,args.frac)
 
 
 
