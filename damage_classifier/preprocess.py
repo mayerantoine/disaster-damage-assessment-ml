@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import math
 import tensorflow as tf
 from tensorflow.keras import optimizers, callbacks,models,layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -7,6 +8,9 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 IMG_SIZE = 224
 images_folder = 'ASONAM17_Damage_Image_Dataset'
 damage_folder = 'damage_csv'
+
+def test_print():
+    print("test..test...")
 
 data_augmentation_layer = tf.keras.Sequential([
                                   layers.RandomFlip("horizontal_and_vertical"),
@@ -16,7 +20,7 @@ data_augmentation_layer = tf.keras.Sequential([
 ])
 
 
-def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100):
+def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100,frac=0.2):
 
     images_path = os.path.join(cwd,'data',images_folder)
     damage_path = os.path.join(cwd,'data',damage_folder)
@@ -31,8 +35,9 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100)
 
     train_df = pd.read_csv(os.path.join(label_path, 'train.csv'), header=None)
     train_df.columns = ['path', 'label']
+    train_df_sample = train_df.sample(frac=frac,random_state=42)
 
-    train_gen = img_gen.flow_from_dataframe(dataframe=train_df,
+    train_gen = img_gen.flow_from_dataframe(dataframe=train_df_sample,
                                             directory=images_path,
                                             x_col='path',
                                             y_col='label',
@@ -42,8 +47,10 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100)
 
     valid_df = pd.read_csv(os.path.join(label_path, 'dev.csv'), header=None)
     valid_df.columns = ['path', 'label']
+    valid_df_sample = valid_df.sample(frac=frac,random_state=42)
+    
 
-    valid_gen = img_gen.flow_from_dataframe(dataframe=valid_df,
+    valid_gen = img_gen.flow_from_dataframe(dataframe=valid_df_sample,
                                             directory=images_path,
                                             x_col='path',
                                             y_col='label',
@@ -54,8 +61,10 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100)
 
     test_df = pd.read_csv(os.path.join(label_path, 'test.csv'), header=None)
     test_df.columns = ['path', 'label']
+    test_df_sample = test_df.sample(frac=frac,random_state=42)
+    
 
-    test_gen = img_gen.flow_from_dataframe(dataframe=test_df,
+    test_gen = img_gen.flow_from_dataframe(dataframe=test_df_sample,
                                            directory=images_path,
                                            x_col='path',
                                            y_col='label',
@@ -88,8 +97,9 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100)
         train_dataset = train_dataset.map(lambda x, y: (data_augmentation_layer(x, training=True), y),
                                           num_parallel_calls=tf.data.AUTOTUNE)
 
-    steps_per_epoch = round(len(train_df) / batch_size)
-    validation_steps = round(len(valid_df) / batch_size)
+    compute_steps_per_epoch = lambda x: int(math.ceil(1. * x / batch_size))
+    steps_per_epoch = compute_steps_per_epoch(len(train_df_sample))
+    validation_steps = compute_steps_per_epoch(len(valid_df_sample))
 
     print(f"steps_per_epochs: {steps_per_epoch}")
     print(f"validations_steps: {validation_steps}")

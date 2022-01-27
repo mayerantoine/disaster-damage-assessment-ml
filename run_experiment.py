@@ -1,8 +1,8 @@
-from damage_classifier.train import train
 import wandb
 import time
 import argparse
 import os
+from damage_classifier.train import train
 
 # https://wandb.ai/maria_rodriguez/Surgical_instruments_models_/reports/Choosing-a-Model-for-Detecting-Surgical-Instruments--VmlldzoxMjI4NjQ0
 
@@ -12,7 +12,7 @@ import os
 # TODO set wandb run name automotically
 
 
-def _get_params(exp_name,model_name,tune,event,lr=1e-3,batch_size=128,epochs=10):
+def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epochs=10):
     return dict(
         exp_name=exp_name,
         event=event,
@@ -21,7 +21,7 @@ def _get_params(exp_name,model_name,tune,event,lr=1e-3,batch_size=128,epochs=10)
         lr=lr,
         batch_size=batch_size,
         do_finetune=tune,
-        use_clr=False,
+        use_clr=policy,
         buffer_size=10,
         n_epochs=epochs,
         init_lr=1e-3,
@@ -58,11 +58,11 @@ def run_experiment(hyper_params,lr,batch,epochs):
                             exp_name = exp_name + '_CLR'
 
                     exp_name = exp_name + "_" + str(timestamp)
-                    params = _get_params(exp_name, model, tune, event,lr,batch,epochs)
+                    params = _get_params(exp_name, model, tune, policy,event,lr,batch,epochs)
                     print(exp_name)
 
                     run = wandb.init(
-                        project='disaster-damage-assessment',
+                        project='disaster-damage-test',
                         notes="events specific run",
                         tags=tags,
                         config=params,
@@ -81,10 +81,10 @@ def run_experiment(hyper_params,lr,batch,epochs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--event",type=str,default='cross_event_ecuador')
-    parser.add_argument("--model", type=str, default='mobilenet')
+    parser.add_argument("--model", type=str, default='efficientnet')
     parser.add_argument("--lr", type=int, default=1e-3)
-    parser.add_argument("--epochs", type=int, default=1)
-    parser.add_argument("--batch",type=int, default=128)
+    parser.add_argument("--epochs", type=int, default=2)
+    parser.add_argument("--batch",type=int, default=32)
 
     args = parser.parse_args()
 

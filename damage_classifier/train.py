@@ -7,6 +7,7 @@ from tensorflow.keras import optimizers, callbacks,models,layers
 import matplotlib.pyplot as plt
 from damage_classifier.models.models import get_mobilenet_model,get_efficient_model,get_vgg16_model,get_vgg16_fc2_model
 from damage_classifier.preprocess import create_dataset
+
 import wandb
 from wandb.keras import WandbCallback
 from sklearn.metrics import accuracy_score,f1_score,precision_score,recall_score,balanced_accuracy_score
@@ -21,9 +22,10 @@ damage_path = '../data/damage_csv'
 # TODO add command line interface
 
 
-def batch_predict(images_ds, label_ds, model, validation_steps):
-    y_true = np.concatenate([y for y in label_ds.take(validation_steps)])
-    preds = model.predict(images_ds, steps=validation_steps)
+
+def batch_predict(ds, model, validation_steps):
+    y_true = np.concatenate([y for x,y in ds.take(validation_steps)])
+    preds = np.concatenate([model.predict(image_batch) for image_batch,label in ds.take(validation_steps)])
     preds_labels = np.argmax(preds, axis=-1)
 
     results = pd.DataFrame({'y_true': y_true,
@@ -109,7 +111,7 @@ def finetune_model(exp_name,lr ,model_name ,train_batches ,valid_batches ,initia
 
 
 def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.001, batch_size=32, do_finetune=False,
-                   use_clr=False, buffer_size=10, n_epochs=20, init_lr=1e-3, max_lr=1e-2):
+                   use_clr=False, buffer_size=10, n_epochs=20, init_lr=1e-3, max_lr=1e-2,frac=0.2):
     print(f"******************{exp_name}*********************************")
     print(f"model_name ={model_name}")
     print(f"data augmentation ={is_augment}")
@@ -124,7 +126,8 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
     train_batches, valid_batches, test_batches, steps_per_epoch, validation_steps = create_dataset(cwd,
                                                                                                    event,
                                                                                                    is_augment=is_augment,
-                                                                                                   batch_size=batch_size)
+                                                                                                   batch_size=batch_size,
+                                                                                                   frac=frac)
 
     if use_clr:
         print("using cyclical LR for training")
@@ -148,6 +151,7 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
     check = callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
     early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
 
+    # data for wandb callback inference
     ds = valid_batches.take(1)
     ds_filter = ds.map(lambda x, y: (x[:5], y[:5]))
     class_names = ['none', 'mild', 'severe']
@@ -189,10 +193,7 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
         # Predictions
         print()
         print(f"Run prediction and Log metrics.........")
-        images_ds = test_batches.map(lambda x, y: x)
-        label_ds = test_batches.map(lambda x, y: y)
-
-        predictions = batch_predict(images_ds, label_ds, model, validation_steps)
+        predictions = batch_predict(test_batches, model, validation_steps)
         metrics = compute_metrics(predictions)
         wandb.log(metrics)
 
@@ -228,10 +229,7 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
         # Predictions
         print()
         print(f"Run prediction and Log metrics.........")
-        images_ds = test_batches.map(lambda x, y: x)
-        label_ds = test_batches.map(lambda x, y: y)
-
-        predictions = batch_predict(images_ds, label_ds, model, validation_steps)
+        predictions = batch_predict(test_batches, model, validation_steps)
         metrics = compute_metrics(predictions)
         wandb.log(metrics)
 
