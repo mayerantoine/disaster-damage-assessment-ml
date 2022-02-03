@@ -83,7 +83,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--event",type=str,default='cross_event_ecuador')
     parser.add_argument("--model", type=str, default='efficientnet')
-    parser.add_argument("--lr", type=int, default=1e-3)
+    parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch",type=int, default=32)
     parser.add_argument("--frac",type=float, default=0.2)
@@ -115,6 +115,14 @@ if __name__ == "__main__":
         hyper_params['models'] = models
 
     print(hyper_params)
+
+    # TODO Create conda env
+    # TODO Install dependencies
+    # TODO download data if not available
+    # TODO Create CSV file if exist
+    # TODO Create Cross event csv file if not exist
+
+    # Run training  experiment
     run_experiment(hyper_params, args.lr, args.batch, args.epochs,args.frac)
 
 
