@@ -5,26 +5,23 @@ import tensorflow as tf
 from tensorflow.keras import optimizers, callbacks,models,layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-IMG_SIZE = 224
 images_folder = 'ASONAM17_Damage_Image_Dataset'
 damage_folder = 'damage_csv'
 
-def test_print():
-    print("test..test...")
 
-data_augmentation_layer = tf.keras.Sequential([
-                                  layers.RandomFlip("horizontal_and_vertical"),
-                                  layers.RandomRotation(0.2),
-                                  layers.RandomCrop(IMG_SIZE,IMG_SIZE),
-                                  layers.RandomContrast(factor=0.8)
-])
-
-
-def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100,frac=0.2):
+def create_dataset(cwd, event, is_augment=False, batch_size=32, 
+                                buffer_size=100,frac=0.2,IMG_SIZE=300):
 
     images_path = os.path.join(cwd,'data',images_folder)
     damage_path = os.path.join(cwd,'data',damage_folder)
     label_path = os.path.join(damage_path, event)
+
+    data_augmentation_layer = tf.keras.Sequential([
+                                  layers.RandomFlip("horizontal_and_vertical"),
+                                  layers.RandomRotation(0.2),
+                                  layers.RandomCrop(IMG_SIZE,IMG_SIZE),
+                                  layers.RandomContrast(factor=0.8)
+        ])
 
     print("images path:", images_path)
     print("damage path:", damage_path)
@@ -104,8 +101,8 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32, buffer_size=100,
     print(f"steps_per_epochs: {steps_per_epoch}")
     print(f"validations_steps: {validation_steps}")
 
-    train_dataset = train_dataset.prefetch(buffer_size=10)
-    valid_dataset = valid_dataset.prefetch(buffer_size=10)
+    train_dataset = train_dataset.prefetch(buffer_size=buffer_size)
+    valid_dataset = valid_dataset.prefetch(buffer_size=buffer_size)
 
     return train_dataset, valid_dataset, test_dataset, steps_per_epoch, validation_steps
 

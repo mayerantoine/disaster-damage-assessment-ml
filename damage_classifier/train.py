@@ -52,7 +52,7 @@ def compute_metrics(pred):
 
 def subplot_learning_curve(model_name,history):
     #plt.clf()
-    plt.figure(figsize=(10,5))
+    plt.figure(figsize=(20,5))
     for i,metric in enumerate(['acc','loss']):
         plt.subplot(1,2,i+1)
         plt.plot(history.history[metric])
@@ -66,7 +66,7 @@ def subplot_learning_curve(model_name,history):
     return plt
 
 
-def finetune_model(exp_name,lr ,model_name ,train_batches ,valid_batches ,initial_epoch,
+def finetune_model(exp_name,lr ,model_name ,output_path,train_batches ,valid_batches ,initial_epoch,
                    epochs, steps_per_epoch ,validation_steps ,use_clr=False ,init_lr=1e-3 ,max_lr=1e-2 ,model=None):
     print(f"finetuning lr ={lr}")
     print(f"finetuning epochs ={epochs}")
@@ -85,7 +85,7 @@ def finetune_model(exp_name,lr ,model_name ,train_batches ,valid_batches ,initia
         for layer in model.layers:
             layer.trainable = True
 
-        check = callbacks.ModelCheckpoint(f'../outputs/model/{exp_name}.h5', save_best_only=True)
+        check = callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
         early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
 
         model.compile(optimizer=optimizers.Adam(learning_rate=lr),
@@ -103,9 +103,12 @@ def finetune_model(exp_name,lr ,model_name ,train_batches ,valid_batches ,initia
                             steps_per_epoch=steps_per_epoch,
                             validation_data=valid_batches,
                             validation_steps=validation_steps,
-                            callbacks=[check,early_stop,WandbCallback(data_type='images',
+                            callbacks=[check,WandbCallback(data_type='images',
                                                                 training_data=ds_filter,
                                                                     labels=class_names)])
+        print()
+        #print('loading best weights model')
+        #model = models.load_model(f'{output_path}/{exp_name}.h5')
 
     return history, model
 
@@ -127,7 +130,8 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
                                                                                                    event,
                                                                                                    is_augment=is_augment,
                                                                                                    batch_size=batch_size,
-                                                                                                   frac=frac)
+                                                                                                   frac=frac,
+                                                                                                   IMG_SIZE= 300)
 
     if use_clr:
         print("using cyclical LR for training")
@@ -163,12 +167,12 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
                         steps_per_epoch=steps_per_epoch,
                         validation_data=valid_batches,
                         validation_steps=validation_steps,
-                        callbacks=[check, early_stop,WandbCallback(data_type='images',
+                        callbacks=[check,WandbCallback(data_type='images',
                                                                 training_data=ds_filter,
                                                                     labels=class_names)])
 
     print()
-    # plt_learning_curve = subplot_learning_curve(model_name, history)
+    subplot_learning_curve(model_name, history)
     # wandb.log({"learning_curve": wandb.Image(plt_learning_curve)})
 
     # TODO Load model correctly
@@ -190,7 +194,7 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
     if not do_finetune:
         wandb.log({"train_acc": results_train['acc'],"valid_acc": results_test['acc']})
 
-        # Predictions
+        #Predictions
         print()
         print(f"Run prediction and Log metrics.........")
         predictions = batch_predict(test_batches, model, validation_steps)
@@ -211,9 +215,10 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
             lr = lr * 1e-2
         print()
         print(f"******Fine tuning***********************")
-        history, model = finetune_model(exp_name=exp_name,lr=lr, model_name=model_name, train_batches=train_batches,
-                                        valid_batches=valid_batches, initial_epoch=n_epochs, epochs=2 * n_epochs,
-                                        steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
+        history, model = finetune_model(exp_name=exp_name,lr=lr, model_name=model_name, output_path=output_path,
+                                        train_batches=train_batches,valid_batches=valid_batches, initial_epoch=n_epochs,
+                                        epochs=2 * n_epochs,steps_per_epoch=steps_per_epoch,
+                                        validation_steps=validation_steps,
                                         use_clr=use_clr, init_lr=init_lr * 1e-2, max_lr=max_lr * 1e-2, model=model)
         print()
         # subplot_learning_curve(model_name + "_fintuned", history)

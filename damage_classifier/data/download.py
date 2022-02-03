@@ -61,8 +61,11 @@ def _save_train_file_as_csv(damage_csv_path,event_file, data_raw_file, file_path
         f.close()
 
 
-## Save as CSV all data for an event
 def save_all_files(damage_csv_path,images_path, event_file):
+    """
+        Save as CSV all data for an event
+    """
+
     files = _get_train_files_by_event(images_path, event_file)
     print(files)
     for f in files:

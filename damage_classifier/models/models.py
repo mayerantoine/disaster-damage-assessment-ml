@@ -1,10 +1,10 @@
 import tensorflow as tf
 from tensorflow.keras import optimizers, callbacks,models,layers
 from tensorflow.keras.applications.vgg16 import VGG16
-from tensorflow.keras.applications.efficientnet import EfficientNetB0
+from tensorflow.keras.applications.efficientnet import EfficientNetB0,EfficientNetB3
 from tensorflow.keras.applications.mobilenet_v2 import MobileNetV2
 
-IMG_SIZE = 224
+IMG_SIZE = 300
 num_classes = 3
 
 # TODO Create classes for the models
@@ -68,7 +68,7 @@ def get_vgg16_fc2_model(lr=0.001):
 def get_efficient_model(lr=0.001):
     tf.keras.backend.clear_session()
     print(f"lr in model = {lr}")
-    pre_trained_model = EfficientNetB0(include_top=False,
+    pre_trained_model = EfficientNetB3(include_top=False,
                                        weights='imagenet',
                                        input_shape=(IMG_SIZE, IMG_SIZE, 3))
 
