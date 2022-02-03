@@ -3,7 +3,6 @@ import gc
 import numpy as np
 import pandas as pd
 import tensorflow_addons as tfa
-from tensorflow.keras import optimizers, callbacks,models,layers
 import matplotlib.pyplot as plt
 from damage_classifier.models.models import get_mobilenet_model,get_efficient_model,get_vgg16_model,get_vgg16_fc2_model
 from damage_classifier.preprocess import create_dataset
@@ -52,7 +51,7 @@ def compute_metrics(pred):
 
 def subplot_learning_curve(model_name,history):
     #plt.clf()
-    plt.figure(figsize=(20,5))
+    plt.figure(figsize=(15,5))
     for i,metric in enumerate(['acc','loss']):
         plt.subplot(1,2,i+1)
         plt.plot(history.history[metric])
@@ -85,10 +84,10 @@ def finetune_model(exp_name,lr ,model_name ,output_path,train_batches ,valid_bat
         for layer in model.layers:
             layer.trainable = True
 
-        check = callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
-        early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
+        check = tf.keras.callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
 
-        model.compile(optimizer=optimizers.Adam(learning_rate=lr),
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=lr),
                       loss='sparse_categorical_crossentropy',
                       metrics=['acc'])
         ds = valid_batches.take(1)
@@ -103,7 +102,7 @@ def finetune_model(exp_name,lr ,model_name ,output_path,train_batches ,valid_bat
                             steps_per_epoch=steps_per_epoch,
                             validation_data=valid_batches,
                             validation_steps=validation_steps,
-                            callbacks=[check,WandbCallback(data_type='images',
+                            callbacks=[check,WandbCallback(input_type='images',
                                                                 training_data=ds_filter,
                                                                     labels=class_names)])
         print()
@@ -151,9 +150,8 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
     elif model_name == 'mobilenet':
         model = get_mobilenet_model(lr=lr)
 
-    # TODO rename model
-    check = callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
-    early_stop = callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
+    check = tf.keras.callbacks.ModelCheckpoint(f'{output_path}/{exp_name}.h5', save_best_only=True)
+    early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_acc', patience=10, restore_best_weights=True)
 
     # data for wandb callback inference
     ds = valid_batches.take(1)
@@ -167,7 +165,7 @@ def train(cwd,exp_name, event, model_name, output_path,is_augment=False, lr=0.00
                         steps_per_epoch=steps_per_epoch,
                         validation_data=valid_batches,
                         validation_steps=validation_steps,
-                        callbacks=[check,WandbCallback(data_type='images',
+                        callbacks=[check,WandbCallback(input_type='images',
                                                                 training_data=ds_filter,
                                                                     labels=class_names)])
 

@@ -91,6 +91,7 @@ def create_dataset(cwd, event, is_augment=False, batch_size=32,
     )
 
     if is_augment:
+        print("data augmentation....")
         train_dataset = train_dataset.map(lambda x, y: (data_augmentation_layer(x, training=True), y),
                                           num_parallel_calls=tf.data.AUTOTUNE)
 

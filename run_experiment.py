@@ -5,12 +5,7 @@ import os
 from damage_classifier.train import train
 
 # https://wandb.ai/maria_rodriguez/Surgical_instruments_models_/reports/Choosing-a-Model-for-Detecting-Surgical-Instruments--VmlldzoxMjI4NjQ0
-
-# TODO Create experiment list as a dict
-# TODO how to tag and name the experiments
-# TODO add command line interface
-# TODO set wandb run name automotically
-
+# https://github.com/full-stack-deep-learning/fsdl-text-recognizer-2021-labs/blob/main/setup/readme.md
 
 def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epochs=10,frac=0.2):
     return dict(
@@ -35,10 +30,13 @@ def get_timestamp():
     return time.strftime('%Y-%m-%d %H:%M:%S', t)
 
 
-def run_experiment(hyper_params,lr,batch,epochs,frac):
+def run_experiment(hyper_params,lr,batch,epochs,frac,is_wandb):
     cwd = os.getcwd()
     print("working dir",cwd)
     output_path = os.path.join(cwd,"outputs/model")
+    if not is_wandb:
+        # If you don't want your script to sync to the cloud
+        os.environ['WANDB_MODE'] = 'offline'
     wandb.login()
     tags = []
     for event in hyper_params["events"]:
@@ -69,13 +67,17 @@ def run_experiment(hyper_params,lr,batch,epochs,frac):
                         config=params,
                         reinit=True
                     )
-                    run_name = run.name
-                    config = wandb.config
-                    run.name = config.exp_name + "-" + run_name
+          
+                    if is_wandb:
+                        run_name = run.name
+                        config = wandb.config
+                        run.name = config.exp_name+ "-" + run_name
+                    
+                    rs = train(cwd,params['exp_name'],params['event'], params['model_name'], output_path,
+                                params['is_augment'],params['lr'],params['batch_size'],params['do_finetune'],
+                                params['use_clr'],params['buffer_size'],params['n_epochs'],params['init_lr'], 
+                                params['max_lr'],params['frac'])
 
-                    rs = train(cwd,config.exp_name, config.event, config.model_name,output_path, config.is_augment,
-                               config.lr,config.batch_size, config.do_finetune, config.use_clr, config.buffer_size,
-                               config.n_epochs,  config.init_lr, config.max_lr,config.frac)
                     run.finish()
 
 
@@ -86,7 +88,10 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--epochs", type=int, default=2)
     parser.add_argument("--batch",type=int, default=32)
+    parser.add_argument("--finetune",action='store_true')
+    parser.add_argument("--clr",action='store_true')
     parser.add_argument("--frac",type=float, default=0.2)
+    parser.add_argument("--wandb",action='store_true')
 
     args = parser.parse_args()
 
@@ -96,8 +101,8 @@ if __name__ == "__main__":
     hyper_params = {
         "events": ['ruby'],
         "models": ['mobilenet'],
-        "tuning": [False],
-        "clr": [False]
+        "tuning": [args.finetune],
+        "clr": [args.clr]
     }
     events = []
     models = []
@@ -116,14 +121,14 @@ if __name__ == "__main__":
 
     print(hyper_params)
 
-    # TODO Create conda env
-    # TODO Install dependencies
+
     # TODO download data if not available
-    # TODO Create CSV file if exist
-    # TODO Create Cross event csv file if not exist
+    # TODO Create experiment notebooks
+    # TODO Test tensorflow version - layer.RandomFlip
+    # TODO environment.yaml
 
     # Run training  experiment
-    run_experiment(hyper_params, args.lr, args.batch, args.epochs,args.frac)
+    run_experiment(hyper_params, args.lr, args.batch, args.epochs,args.frac,args.wandb)
 
 
 
