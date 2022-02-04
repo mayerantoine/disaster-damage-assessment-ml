@@ -14,9 +14,9 @@ def download_images(target_path):
 
 def extract_images(target_path, filename='ASONAM17_Damage_Image_Dataset.tar.gz'):
 
-    print(target_path + filename)
+    print(target_path)
 
-    tar = tarfile.open(target_path+filename)
+    tar = tarfile.open(os.path.join(target_path,filename))
     tar.extractall(path=target_path)
     tar.close()
 
