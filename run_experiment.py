@@ -7,6 +7,7 @@ from damage_classifier.train import train
 # https://wandb.ai/maria_rodriguez/Surgical_instruments_models_/reports/Choosing-a-Model-for-Detecting-Surgical-Instruments--VmlldzoxMjI4NjQ0
 # https://github.com/full-stack-deep-learning/fsdl-text-recognizer-2021-labs/blob/main/setup/readme.md
 
+
 def _get_params(exp_name,model_name,tune,policy,event,lr=1e-3,batch_size=128,epochs=10,frac=0.2):
     return dict(
         exp_name=exp_name,
@@ -32,8 +33,12 @@ def get_timestamp():
 
 def run_experiment(hyper_params,lr,batch,epochs,frac,is_wandb):
     cwd = os.getcwd()
-    print("working dir",cwd)
-    output_path = os.path.join(cwd,"outputs/model")
+    print("working dir:",cwd)
+    
+    output_path = os.path.join(cwd,"outputs","model")
+    os.makedirs(f"{output_path}/model/", exist_ok=True)
+    print("model output path:",output_path)
+
     if not is_wandb:
         # If you don't want your script to sync to the cloud
         os.environ['WANDB_MODE'] = 'offline'
@@ -123,9 +128,9 @@ if __name__ == "__main__":
 
 
     # TODO download data if not available
-    # TODO Create experiment notebooks
+    # TODO Create demo app notebooks
     # TODO Test tensorflow version - layer.RandomFlip
-    # TODO environment.yaml
+
 
     # Run training  experiment
     run_experiment(hyper_params, args.lr, args.batch, args.epochs,args.frac,args.wandb)

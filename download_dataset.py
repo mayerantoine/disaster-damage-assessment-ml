@@ -18,7 +18,7 @@ def download_data(cwd):
         print("images folder not found")
         print("downloading and extracting images data...........")
         filename = download_images(target_path)
-        extract_images(target_path=target_path, filename=filename)
+        extract_images(target_path=target_path)
 
     # create damage_csv and convert all files path and labels to csv
     if os.path.isdir(images_path):
