@@ -73,3 +73,6 @@ if __name__ == '__main__' :
     eq_events = ['nepal','gg','ecuador']
     create_cross_event_dataset(eq_events,'ecuador')
 
+    typhoon_events = ['ruby','gg','matthew']
+    create_cross_event_dataset(typhoon_events,'matthew')
+
