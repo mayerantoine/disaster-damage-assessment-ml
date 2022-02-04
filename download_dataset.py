@@ -7,16 +7,18 @@ def download_data(cwd):
     print("working dir", cwd)
     target_path = os.path.join(cwd, 'data')
     images_path = os.path.join(cwd, 'data', images_folder)
+    image_file = os.path.join(cwd,'data',images_file_name)
     damage_csv_path = os.path.join(cwd, 'data', damage_folder)
 
     # check if folder or images already exits first
-    if not os.path.isdir(images_path):
-        print("images not folder found")
-        print("download and extracting images data")
+    if os.path.isdir(images_path) and os.path.exists(image_file):
+        print("images folder found")
+        print("images data already existed")
+    else:
+        print("images folder not found")
+        print("downloading and extracting images data...........")
         filename = download_images(target_path)
         extract_images(target_path=target_path, filename=filename)
-    else:
-        print("images folder found")
 
     # create damage_csv and convert all files path and labels to csv
     if os.path.isdir(images_path):
@@ -25,6 +27,8 @@ def download_data(cwd):
 
 
 def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
+    """ Create cross-events data """
+
     damage_csv_path = os.path.join(cwd, 'data', damage_folder)
     train_cross_df =[]
     for event in cross_events:
@@ -35,7 +39,7 @@ def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
             # print(f"{event} : {file} : {len(df)}")
             train_files.append(df)
         event_files_merge = pd.concat(train_files,axis=0)
-        print(event,len(event_files_merge))
+        # print(event,len(event_files_merge))
 
         if event != test_event :
             # take 60% from each event for training
@@ -51,6 +55,7 @@ def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
         train_cross_df.append(df_event)
 
     train = pd.concat(train_cross_df, axis=0)
+    print(f"Cross-event data: {test_event}")
     print("train data:", len(train))
     print("dev data:", len(dev))
     print("test data:", len(test))
@@ -71,8 +76,8 @@ if __name__ == '__main__' :
     download_data(cwd)
 
     eq_events = ['nepal','gg','ecuador']
-    create_cross_event_dataset(eq_events,'ecuador')
+    create_cross_event_dataset(cwd,eq_events,'ecuador')
 
     typhoon_events = ['ruby','gg','matthew']
-    create_cross_event_dataset(typhoon_events,'matthew')
+    create_cross_event_dataset(cwd,typhoon_events,'matthew')
 
