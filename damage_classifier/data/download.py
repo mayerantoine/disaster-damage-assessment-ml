@@ -4,7 +4,6 @@ import wget
 import csv
 import os
 
-# TODO Create cross-event dataset
 
 def download_images(target_path):
     url = 'https://crisisnlp.qcri.org/data/ASONAM17_damage_images/ASONAM17_Damage_Image_Dataset.tar.gz'
