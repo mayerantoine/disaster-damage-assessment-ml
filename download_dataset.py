@@ -26,7 +26,7 @@ def download_data(cwd):
             save_all_files(damage_csv_path, images_path, event_file)
 
 
-def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
+def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6,test_frac=0.6,tag=""):
     """ Create cross-events data """
 
     damage_csv_path = os.path.join(cwd, 'data', damage_folder)
@@ -46,7 +46,7 @@ def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
             df_event = event_files_merge.sample(frac=train_frac, random_state=42)
         else:
             size = len(event_files_merge)
-            split = int(train_frac * size)
+            split = int(test_frac * size)
             df_event = event_files_merge[:split]
             df_dev_test = event_files_merge[split:]
             dev = df_dev_test[int(0.5*len(df_dev_test)):]
@@ -60,7 +60,8 @@ def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6):
     print("dev data:", len(dev))
     print("test data:", len(test))
 
-    event_folder = "cross_event_" + test_event
+    event_folder = "cross_event_" + test_event + "_"+ tag
+    os.makedirs(os.path.join(damage_csv_path,event_folder),exist_ok=True)
     train.to_csv(os.path.join(damage_csv_path,event_folder,'train.csv'),index=False)
     dev.to_csv(os.path.join(damage_csv_path, event_folder, 'dev.csv'), index=False)
     test.to_csv(os.path.join(damage_csv_path, event_folder, 'test.csv'), index=False)
@@ -76,8 +77,11 @@ if __name__ == '__main__' :
     download_data(cwd)
 
     eq_events = ['nepal','gg','ecuador']
-    create_cross_event_dataset(cwd,eq_events,'ecuador')
+    create_cross_event_dataset(cwd,eq_events,'ecuador',train_frac=0.6,test_frac=0.6)
+
+    eq_events = ['nepal','gg','haiti','ecuador']
+    create_cross_event_dataset(cwd,eq_events,'ecuador',train_frac=1.0,test_frac=0.3,tag='haiti')
 
     typhoon_events = ['ruby','gg','matthew']
-    create_cross_event_dataset(cwd,typhoon_events,'matthew')
+    create_cross_event_dataset(cwd,typhoon_events,'matthew',train_frac=0.6,test_frac=0.6)
 
