@@ -1,11 +1,11 @@
 # Disaster damage assessment
 
 ## Overview
-Damage assessments  during and after natural disasters are core activities for humanitarian organizations. They are used to increase situational awareness during the disaster or to provide actionable information for rescue teams.Post-disasters, they are essential  to evaluate the financial impact and the recovery cost.
+Damage assessments during and after natural disasters are core activities for humanitarian organizations. They are used to increase situational awareness during the disaster or to provide actionable information for rescue teams. In post-disasters, they are essential to evaluate the financial impact and the recovery cost.
 
-However, effectively implementing damage assessment using surveys represents a challenge for several organizations as it takes weeks and months and is logistically difficult for rapid assessment. In recent years a lot of research has been done on using AI and machine learning to automate classification of the damages. Those studies and systems use social media imagery data such twitter text and images, aerial and satellite images to assess and map damages during and after a disaster. For the AWS disaster response hackathon one of the challenge is to answer the question :How might we accurately and efficiently determine the extent of damage to individual homes in a given disaster-impacted area?  
+However, effectively implementing damage assessment, using surveys, represents a challenge for several organizations as it takes weeks and months and is logistically difficult for rapid assessment. In recent years, a lot of research has been done on using AI and machine learning to automate classification of the damages. Those studies and systems use social media imagery data such twitter text and images, aerial and satellite images to assess and map damages during and after a disaster. For the AWS disaster response hackathon one of the challenge is to answer the question :How might we accurately and efficiently determine the extent of damage to individual homes in a given disaster-impacted area?  
 
-To answer that question our team proposed to **train and deploy a proof of concept image classifier for damage assessment**. We built a simple app that would allow users to load an image of a building, road or bridge  and classify the extend of damage cause by an earthquake. The severity of damage in an image is the extent of physical destruction shown in it.For this experiment we only consider three level of damages :
+To answer that question our team proposed to **train and deploy a proof of concept image classifier for damage assessment**. We built a simple app that would allow users to load an image of a building, road or bridge  and classify the extend of damage cause by an earthquake. The severity of damage in an image is the extent of physical destruction shown in it. For this experiment we only consider three level of damages :
 
 * severe damage
 * mild damage
@@ -13,9 +13,9 @@ To answer that question our team proposed to **train and deploy a proof of conce
 
 ## What's next
 
-We believe this proof of concept could evolved in several type applications for rapid assessment during disaster or post disaster. It could be used by rescue teams, assessors or victims of natural disasters.
+We believe this proof of concept could evolve in several types of application for rapid assessment during disaster or post disaster. It could be used by rescue teams, assessors or victims of natural disasters.
 
-Also, extended with some ground truth financial data from other resources we think this type of appllication could help estimate the USD equivalent of the infrastructural damage. Other features can be added in the future such as: buid an edge device app for smartphone or drones, visual question answering to extract actionable information from a central database, a no-code deep learning platform  to assist humanitarian organization to build thier own model for specific natural disaster event.
+Also, extended with some ground truth financial data from other resources we think this type of appllication could help estimate the USD equivalent of the infrastructural damage. Other features can be added in the future such as: build an edge device app for smartphone or drones, visual question answering to extract actionable information from a central database, a no-code deep learning platform  to assist humanitarian organization to build thier own model for specific natural disaster event.
 
 ## Our proof of concept
 
