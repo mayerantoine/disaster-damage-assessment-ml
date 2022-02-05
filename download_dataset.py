@@ -26,7 +26,7 @@ def download_data(cwd):
             save_all_files(damage_csv_path, images_path, event_file)
 
 
-def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6,test_frac=0.6,tag=""):
+def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6,test_frac=0.6,tag=None):
     """ Create cross-events data """
 
     damage_csv_path = os.path.join(cwd, 'data', damage_folder)
@@ -60,7 +60,13 @@ def create_cross_event_dataset(cwd,cross_events,test_event,train_frac=0.6,test_f
     print("dev data:", len(dev))
     print("test data:", len(test))
 
-    event_folder = "cross_event_" + test_event + "_"+ tag
+
+
+    if tag:
+       event_folder = "cross_event_" + test_event + "_"+ tag
+    else:
+       event_folder = "cross_event_" + test_event
+       
     os.makedirs(os.path.join(damage_csv_path,event_folder),exist_ok=True)
     train.to_csv(os.path.join(damage_csv_path,event_folder,'train.csv'),index=False)
     dev.to_csv(os.path.join(damage_csv_path, event_folder, 'dev.csv'), index=False)
