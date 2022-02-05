@@ -82,8 +82,9 @@ def run_experiment(hyper_params,lr,batch,epochs,frac,is_wandb):
                                 params['is_augment'],params['lr'],params['batch_size'],params['do_finetune'],
                                 params['use_clr'],params['buffer_size'],params['n_epochs'],params['init_lr'], 
                                 params['max_lr'],params['frac'])
-
-                    run.finish()
+                    
+                    if is_wandb:
+                        run.finish()
 
 
 if __name__ == "__main__":
